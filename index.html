@@ -1,0 +1,634 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>404 Found - Lost & Found Community</title>
+
+  <!-- Tailwind CDN for utility classes -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg-0: #f0f9ff;
+      --bg-1: #e0f2fe;
+      --bg-2: #bde9fb;
+      --accent: #38bdf8;
+      --glass: rgba(255,255,255,0.78);
+      --glass-dark: rgba(12,18,28,0.44);
+      --muted: #64748b;
+      --blue-glow: rgba(59,130,246,0.40);
+    }
+    *{box-sizing:border-box;font-family:"Nunito",sans-serif}
+    html,body{height:100%;margin:0;color:#0f172a;background:linear-gradient(180deg,var(--bg-0) 0%, var(--bg-1) 35%, var(--bg-2) 100%);}
+
+    /* Layered blended background + waves */
+    body::before{
+      content:"";
+      position:fixed; inset:0; z-index:0;
+      background:
+        radial-gradient(1200px 420px at 10% 8%, rgba(255,255,255,0.06), transparent 10%),
+        radial-gradient(900px 300px at 90% 12%, rgba(255,255,255,0.04), transparent 8%),
+        linear-gradient(180deg, rgba(250,253,255,0.6), rgba(225,242,254,0.35));
+      pointer-events:none;
+      backdrop-filter: blur(8px);
+    }
+
+    /* Noise overlay subtle */
+    .noise {
+      pointer-events:none;
+      position:fixed; inset:0; z-index:2; mix-blend-mode:overlay;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><filter id="t"><feTurbulence baseFrequency="0.9" numOctaves="1" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23t)" opacity="0.02"/></svg>');
+      opacity:0.9;
+    }
+
+    /* Clouds container - SVGs absolute */
+    .clouds { position:fixed; inset:0; z-index:1; pointer-events:none; }
+
+    /* Glass cards */
+    .glass {
+      background:var(--glass);
+      backdrop-filter:blur(10px) saturate(120%);
+      border:1px solid rgba(105,142,162,0.08);
+      box-shadow:0 8px 30px rgba(2,6,23,0.08);
+      transition: transform .22s ease, box-shadow .22s ease;
+    }
+    .glass:hover{ transform: translateY(-6px); box-shadow:0 20px 40px rgba(2,6,23,0.12); }
+
+    /* Title gentle float/bounce */
+    .title-breath { display:inline-block; animation:breath 4.2s ease-in-out infinite; transform-origin:center; }
+    @keyframes breath{
+      0%,92%{ transform: translateY(0) scale(1); }
+      96%{ transform: translateY(-6px) scale(1.004); }
+      100%{ transform: translateY(0) scale(1); }
+    }
+
+    /* floating subtle animation for clouds/objects */
+    .float-slow { animation: floatSlow 12s ease-in-out infinite; }
+    @keyframes floatSlow { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-8px) } }
+
+    /* Blue hover glow used on interactive elements */
+    .blue-glow-hover:hover { box-shadow: 0 10px 36px var(--blue-glow); transform: translateY(-4px); }
+
+    /* Sparkles */
+    .sparkle { position:absolute; width:5px; height:5px; border-radius:999px; background:linear-gradient(180deg,#fff,#fff); box-shadow:0 0 10px rgba(255,255,255,0.95); }
+
+    /* Modals */
+    .modal { display:none; position:fixed; inset:0; background: rgba(2,6,23,0.45); z-index:90; align-items:center; justify-content:center; padding:20px; }
+    .modal.active { display:flex; }
+
+    /* Swipe & cards */
+    .card { border-radius:12px; background:white; box-shadow: 0 12px 36px rgba(2,6,23,0.12); overflow:hidden; }
+
+    /* skeleton loader */
+    .skeleton { background: linear-gradient(90deg,#f3f4f6 25%, #e6eef8 50%, #f3f4f6 75%); background-size:200% 100%; animation: load 1.4s linear infinite; }
+    @keyframes load{ to { background-position: -200% 0 } }
+
+    /* inputs straight & consistent */
+    input[type="text"], input[type="email"], textarea, input[type="file"]{
+      transform:none !important;
+      border-radius:10px;
+      padding:10px 12px;
+      border:1px solid #e6eef8;
+      background: rgba(255,255,255,0.9);
+      width:100%;
+      box-shadow:none;
+    }
+    textarea{ resize:vertical; min-height:100px; }
+
+    /* star btn */
+    .star-btn { cursor:pointer; transition: transform .12s ease; }
+    .star-btn:hover { transform: scale(1.18); }
+
+    /* profile dropdown */
+    .profile-menu { display:none; position:absolute; right:0; top:40px; min-width:180px; background:var(--glass); border-radius:12px; padding:8px; box-shadow:0 8px 26px rgba(2,6,23,0.12); }
+    .profile-wrap:hover .profile-menu { display:block; }
+
+    /* success carousel */
+    .carousel { display:flex; gap:12px; overflow:hidden; align-items:center; }
+    .carousel-track { display:flex; gap:12px; transition:transform .45s cubic-bezier(.2,.8,.2,1); }
+    .carousel-item { min-width:260px; flex:0 0 auto; }
+
+    /* dark mode */
+    .dark { --glass: rgba(10,14,22,0.6); --glass-dark: rgba(255,255,255,0.04); background: linear-gradient(180deg,#071027 0%, #0b2540 50%, #09304b 100%); color:#e6eef8; }
+    .dark .glass{ background: var(--glass); border:1px solid rgba(255,255,255,0.06); box-shadow: none; color: #e6eef8; }
+    .dark input, .dark textarea { background: rgba(255,255,255,0.03); color:#e6eef8; border:1px solid rgba(255,255,255,0.06); }
+
+    /* small responsive */
+    @media (min-width:1024px){ .min-w-72{ min-width:340px } }
+  </style>
+</head>
+<body id="pageBody">
+
+  <!-- noise layer -->
+  <div class="noise" aria-hidden="true"></div>
+
+  <!-- clouds & subtle characters (layered & blended) -->
+  <div class="clouds" aria-hidden="true">
+    <!-- far -->
+    <svg class="float-slow" style="position:absolute; left:6%; top:6%; opacity:0.14; width:220px; height:92px;" viewBox="0 0 200 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g fill="#ffffff"><ellipse cx="40" cy="30" rx="40" ry="22"/><ellipse cx="90" cy="20" rx="30" ry="18"/><ellipse cx="130" cy="32" rx="38" ry="22"/></g>
+    </svg>
+    <!-- middle -->
+    <svg class="float-slow" style="position:absolute; right:6%; top:12%; opacity:0.18; width:320px; height:120px; animation-delay:0.6s;" viewBox="0 0 300 120"><g fill="#ffffff"><ellipse cx="50" cy="40" rx="50" ry="26"/><ellipse cx="120" cy="26" rx="42" ry="22"/><ellipse cx="190" cy="48" rx="58" ry="26"/></g></svg>
+    <!-- near -->
+    <svg class="float-slow" style="position:absolute; left:50%; top:2%; transform:translateX(-50%); opacity:0.12; width:720px; height:220px; animation-duration:14s;" viewBox="0 0 800 240"><g fill="#ffffff"><ellipse cx="160" cy="80" rx="150" ry="48"/><ellipse cx="360" cy="56" rx="120" ry="44"/><ellipse cx="580" cy="86" rx="180" ry="56"/></g></svg>
+
+    <!-- two pastel characters (subtle) -->
+    <svg style="position:absolute; left:6%; bottom:10%; opacity:0.92; width:220px; height:220px;" viewBox="0 0 200 200">
+      <g transform="translate(12,20)"><circle cx="28" cy="18" r="14" fill="#ffd8d2"/><rect x="10" y="36" rx="10" width="36" height="48" fill="#9ad8ff"/><path d="M2 84 q16 10 36 10 q20 0 36 -10" fill="#77c3ff"/></g>
+    </svg>
+    <svg style="position:absolute; right:8%; bottom:8%; opacity:0.92; width:220px; height:220px;" viewBox="0 0 200 200">
+      <g transform="translate(16,10)"><circle cx="28" cy="20" r="14" fill="#fff0d6"/><rect x="10" y="40" rx="10" width="36" height="48" fill="#bde9d8"/><path d="M2 88 q16 10 36 10 q20 0 36 -10" fill="#9be6c4"/></g>
+    </svg>
+  </div>
+
+  <!-- Header -->
+  <header class="relative z-30 py-6 px-6">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <h1 class="text-3xl lg:text-4xl font-bold tracking-tight">
+          <span class="title-breath">404 Found</span>
+        </h1>
+        <div class="text-sm text-muted" style="margin-top:4px;color:var(--muted)">Where lost meets found.</div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- dark mode toggle (D: top-right moon/sun) -->
+        <button id="themeToggle" class="rounded-full p-2 hover:scale-105" title="Toggle dark mode" aria-label="Toggle dark mode">
+          <svg id="themeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+
+        <!-- updates -->
+        <button onclick="openModal('updatesModal')" class="px-4 py-2 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 text-white">Updates</button>
+
+        <!-- profile -->
+        <div class="relative profile-wrap">
+          <button class="flex items-center gap-2 px-3 py-2 rounded-full bg-white/80 glass blue-glow-hover" style="border:1px solid rgba(0,0,0,0.04)">
+            <div style="width:30px;height:30px;border-radius:999px;background:#e6f6ff;display:flex;align-items:center;justify-content:center">N</div>
+          </button>
+          <div class="profile-menu">
+            <div class="text-sm p-2">Signed out</div>
+            <button class="w-full text-left p-2 rounded hover:bg-white/6">Sign in</button>
+            <button class="w-full text-left p-2 rounded hover:bg-white/6">Sign up</button>
+            <hr />
+            <button class="w-full text-left p-2 rounded hover:bg-white/6">Settings</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 py-10 relative z-20">
+    <!-- Hero -->
+    <section class="text-center mb-12">
+      <h2 class="text-4xl lg:text-5xl font-bold mb-6">Find What's Lost.<br><span class="text-blue-600">Return What's Found.</span></h2>
+
+      <!-- sparkles -->
+      <div style="position:relative;height:0;">
+        <div class="sparkle" style="left:50%; top:-18px;"></div>
+        <div class="sparkle" style="left:46%; top:-4px; width:4px; height:4px; opacity:0.9;"></div>
+      </div>
+
+      <div class="flex flex-col md:flex-row gap-6 justify-center items-center mt-6">
+        <!-- Lost -->
+        <button onclick="openModal('lostModal')" class="glass p-6 rounded-3xl min-w-72 blue-glow-hover">
+          <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow">🔎</div>
+          <h3 class="text-xl font-semibold">I Lost Something</h3>
+          <p class="text-sm text-slate-600 mt-2">Report your lost item</p>
+        </button>
+
+        <!-- Found: uses custom SVG bag icon (D) -->
+        <button onclick="openModal('foundModal')" class="glass p-6 rounded-3xl min-w-72 blue-glow-hover" id="foundBtn">
+          <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center text-white shadow">
+            <!-- Custom bag SVG (blue-themed) -->
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 7a6 6 0 0112 0" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <rect x="3" y="7.5" width="18" height="12" rx="2.2" fill="#fff" opacity="0.06"></rect>
+              <path d="M4 10.5h16" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>
+              <path d="M8 10.5v-1a4 4 0 018 0v1" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M9 15h0" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold">I Found Something</h3>
+          <p class="text-sm text-slate-600 mt-2">Help return someone's lost item</p>
+        </button>
+      </div>
+    </section>
+
+    <!-- About -->
+    <section class="mb-8">
+      <div class="glass p-6 rounded-3xl">
+        <h3 class="text-2xl font-bold mb-2 text-center">About 404 Found</h3>
+        <p class="text-slate-600 text-center max-w-3xl mx-auto">At 404 Found, we believe no valuable memory or belonging should stay lost. We are a team building a community-driven platform where technology bridges the gap, making the lost meet the found.</p>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section class="mb-8">
+      <div class="glass p-6 rounded-3xl">
+        <h3 class="text-xl font-bold mb-4 text-center">How It Works</h3>
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="text-center p-4 rounded-2xl bg-white/60"> <div class="mb-2">📝</div><h4 class="font-semibold">Report</h4><p class="text-sm text-slate-600">Report lost or found items.</p></div>
+          <div class="text-center p-4 rounded-2xl bg-white/60"> <div class="mb-2">🔍</div><h4 class="font-semibold">Match</h4><p class="text-sm text-slate-600">We connect lost items with owners.</p></div>
+          <div class="text-center p-4 rounded-2xl bg-white/60"> <div class="mb-2">🤝</div><h4 class="font-semibold">Retrieve</h4><p class="text-sm text-slate-600">Coordinate safe pick-up.</p></div>
+          <div class="text-center p-4 rounded-2xl bg-white/60"> <div class="mb-2">⭐</div><h4 class="font-semibold">Feedback</h4><p class="text-sm text-slate-600">Share your experience.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Industries -->
+    <section class="mb-8">
+      <h3 class="text-xl font-bold text-center mb-4">Industries We Serve</h3>
+      <div class="grid md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div class="glass p-4 rounded-2xl text-center">🏫<h4 class="mt-2 font-semibold">Schools</h4></div>
+        <div class="glass p-4 rounded-2xl text-center">🎓<h4 class="mt-2 font-semibold">Campuses</h4></div>
+        <div class="glass p-4 rounded-2xl text-center">🏨<h4 class="mt-2 font-semibold">Hotels</h4></div>
+        <div class="glass p-4 rounded-2xl text-center">🌳<h4 class="mt-2 font-semibold">Parks</h4></div>
+        <div class="glass p-4 rounded-2xl text-center">✈️<h4 class="mt-2 font-semibold">Airports</h4></div>
+      </div>
+    </section>
+
+    <!-- Recently Found -->
+    <section class="mb-8">
+      <h3 class="text-xl font-bold text-center mb-3">Recently Found Items</h3>
+      <div id="recentFound" class="glass p-6 rounded-3xl text-center">
+        <p class="text-slate-600">No items found yet — items will appear here once reported and verified.</p>
+      </div>
+    </section>
+
+    <!-- Success Stories Carousel -->
+    <section class="mb-8">
+      <h3 class="text-xl font-bold text-center mb-3">Success Stories</h3>
+      <div class="glass p-4 rounded-3xl">
+        <div class="flex items-center justify-between mb-3">
+          <button onclick="carouselPrev()" class="px-3 py-2 rounded bg-gray-100">‹</button>
+          <div style="overflow:hidden" class="flex-1 mx-4">
+            <div id="carouselTrack" class="carousel-track" style="display:flex;gap:12px;">
+              <!-- Items inserted by loadReviews() -->
+            </div>
+          </div>
+          <button onclick="carouselNext()" class="px-3 py-2 rounded bg-gray-100">›</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Feedback with star rating -->
+    <section class="mb-16">
+      <h3 class="text-xl font-bold text-center mb-3">Share Your Experience</h3>
+      <div class="max-w-2xl mx-auto">
+        <div class="glass p-6 rounded-3xl">
+          <form id="reviewForm" onsubmit="submitReview(event)" class="space-y-4">
+            <div><label class="text-sm font-semibold">Your Name</label><input id="reviewName" required type="text" placeholder="Your name"></div>
+
+            <div>
+              <label class="text-sm font-semibold">Rate your experience</label>
+              <div id="starContainer" class="flex gap-2 mt-2" role="radiogroup" aria-label="Star rating">
+                <button type="button" class="star-btn text-3xl text-slate-300" data-value="1" aria-label="1 star">★</button>
+                <button type="button" class="star-btn text-3xl text-slate-300" data-value="2" aria-label="2 stars">★</button>
+                <button type="button" class="star-btn text-3xl text-slate-300" data-value="3" aria-label="3 stars">★</button>
+                <button type="button" class="star-btn text-3xl text-slate-300" data-value="4" aria-label="4 stars">★</button>
+                <button type="button" class="star-btn text-3xl text-slate-300" data-value="5" aria-label="5 stars">★</button>
+              </div>
+            </div>
+
+            <div><label class="text-sm font-semibold">Tell us about your experience</label><textarea id="reviewText" required placeholder="Share your story..."></textarea></div>
+
+            <div class="flex gap-2">
+              <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Share My Review</button>
+              <div id="reviewStatus" class="text-sm text-slate-600 self-center"></div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ---------- MODALS / SWIPE / CHAT ---------- -->
+
+  <!-- Updates Modal -->
+  <div id="updatesModal" class="modal" aria-hidden="true">
+    <div class="glass p-4 rounded-3xl max-w-2xl w-full">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="font-semibold">Recent Updates</h3>
+        <button onclick="closeModal('updatesModal')">✕</button>
+      </div>
+      <div id="updatesList"> <p class="text-slate-600">No recent updates.</p> </div>
+    </div>
+  </div>
+
+  <!-- Lost modal -->
+  <div id="lostModal" class="modal" aria-hidden="true">
+    <div class="glass p-4 rounded-3xl max-w-md w-full">
+      <div class="flex justify-between items-center mb-2"><h3 class="font-semibold text-red-600">Report Lost Item</h3><button onclick="closeModal('lostModal')">✕</button></div>
+      <form onsubmit="submitLostForm(event)" id="lostForm" class="space-y-3">
+        <div><label class="text-sm">Item Name</label><input required id="lostName" type="text" placeholder="e.g., Blue backpack"></div>
+        <div><label class="text-sm">Where did you lose it?</label><input required id="lostLocation" type="text" placeholder="Location"></div>
+        <div><label class="text-sm">Description</label><textarea required id="lostDesc" placeholder="Describe your item"></textarea></div>
+        <div><label class="text-sm">Contact</label><input required id="lostContact" type="email" placeholder="your.email@example.com"></div>
+        <div class="flex gap-2"><button type="button" onclick="closeModal('lostModal')" class="px-3 py-2 rounded border">Cancel</button><button type="submit" class="px-3 py-2 rounded bg-red-500 text-white">Report</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Found modal (with image upload preview) -->
+  <div id="foundModal" class="modal" aria-hidden="true">
+    <div class="glass p-4 rounded-3xl max-w-md w-full">
+      <div class="flex justify-between items-center mb-2"><h3 class="font-semibold text-green-600">Report Found Item</h3><button onclick="closeModal('foundModal')">✕</button></div>
+      <form id="foundForm" onsubmit="submitFoundForm(event)" class="space-y-3">
+        <div><label class="text-sm">Item Name</label><input required id="foundName" type="text" placeholder="e.g., Red wallet"></div>
+        <div><label class="text-sm">Where found</label><input required id="foundLocation" type="text" placeholder="Location"></div>
+        <div><label class="text-sm">Description</label><textarea required id="foundDesc" placeholder="Describe the item"></textarea></div>
+        <div>
+          <label class="text-sm">Upload photo of the item (required)</label>
+          <input id="foundImageInput" type="file" accept="image/*" required>
+          <div id="foundImagePreview" style="margin-top:8px; display:none;">
+            <img id="foundImgTag" src="" alt="preview" style="max-width:100%; border-radius:8px; box-shadow:0 8px 24px rgba(2,6,23,0.06)">
+          </div>
+        </div>
+        <div><label class="text-sm">Contact</label><input required id="foundContact" type="email" placeholder="your.email@example.com"></div>
+        <div class="flex gap-2"><button type="button" onclick="closeModal('foundModal')" class="px-3 py-2 rounded border">Cancel</button><button type="submit" class="px-3 py-2 rounded bg-green-500 text-white">Report Found</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Swipe modal -->
+  <div id="swipeModal" class="modal" aria-hidden="true">
+    <div class="p-4 rounded-3xl max-w-2xl w-full glass">
+      <div class="flex justify-between items-center mb-3"><h3 class="font-semibold">Found Items</h3><button onclick="closeSwipe()">✕</button></div>
+      <div id="cardStack" class="min-h-[220px] mb-4"></div>
+      <div id="noItemsPlaceholder" style="display:none" class="text-center text-slate-600"><p>No items available right now</p></div>
+      <div class="flex gap-3 justify-center"><button id="undoBtn" disabled onclick="undoSwipe()" class="px-3 py-2 rounded bg-gray-100">↺ Undo</button><button onclick="swipeLeft()" class="px-3 py-2 rounded bg-red-500 text-white">✕ Reject</button><button onclick="swipeRight()" class="px-3 py-2 rounded bg-green-600 text-white">♥ Accept</button></div>
+    </div>
+  </div>
+
+  <!-- Match modal -->
+  <div id="matchModal" class="modal" aria-hidden="true">
+    <div class="glass p-4 rounded-3xl max-w-lg w-full text-center">
+      <h3 class="text-xl font-bold mb-2">It's a Match! 🎉</h3>
+      <p id="matchInfo" class="text-slate-600 mb-3">You can now chat with the finder.</p>
+      <div class="flex gap-3 justify-center"><button onclick="openMatchChat()" class="px-3 py-2 rounded bg-blue-600 text-white">Start Chat</button><button onclick="closeModal('matchModal')" class="px-3 py-2 rounded border">Later</button></div>
+    </div>
+  </div>
+
+  <!-- Match Chat -->
+  <div id="matchChat" class="modal" aria-hidden="true" style="align-items:flex-end;padding:0;">
+    <div class="bg-white w-full max-w-2xl rounded-t-3xl">
+      <div class="flex items-center justify-between px-4 py-3 border-b">
+        <div class="flex items-center gap-3">
+          <div style="width:40px;height:40px;border-radius:999px;background:#eef6ff;display:flex;align-items:center;justify-content:center">👤</div>
+          <div><div id="chatHeaderTitle" class="font-semibold">Finder</div><div id="chatHeaderSubtitle" class="text-xs text-slate-500">Matched item</div></div>
+        </div>
+        <div><button onclick="closeMatchChat()">✕</button></div>
+      </div>
+      <div id="chatMessages" class="p-3 max-h-[48vh] overflow-y-auto bg-white">
+        <div id="chatEmptyPlaceholder" class="text-center text-slate-500"><p>No messages yet. Start the conversation.</p></div>
+      </div>
+      <div class="p-3 border-t bg-white flex gap-2">
+        <input id="matchChatInput" class="flex-1 p-2 border rounded" placeholder="Type a message...">
+        <button onclick="sendMatchChat()" class="px-3 py-2 bg-blue-600 text-white rounded">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report / tutorial etc -->
+  <div id="reportModal" class="modal" aria-hidden="true">
+    <div class="report-content p-4 rounded-2xl max-w-md glass">
+      <h4 class="font-semibold mb-2">Report Issue</h4>
+      <div class="space-y-2">
+        <button class="w-full p-2 rounded text-left">Item details don't match</button>
+        <button class="w-full p-2 rounded text-left">Suspicious behaviour</button>
+      </div>
+      <div class="flex gap-2 justify-end mt-3"><button onclick="hideReportModal()" class="px-3 py-2 rounded border">Cancel</button><button onclick="submitReport()" class="px-3 py-2 rounded bg-red-500 text-white">Submit</button></div>
+    </div>
+  </div>
+
+  <div id="tutorialOverlay" class="modal" aria-hidden="true">
+    <div class="p-4 rounded-2xl max-w-md text-center">
+      <h3 class="text-xl font-bold mb-2">Welcome to 404 Found!</h3>
+      <p class="mb-3">Swipe left to skip, right to claim. Use the Found button to report an item you found (photo required).</p>
+      <button id="gotItBtn" class="px-3 py-2 rounded bg-blue-600 text-white">Got it</button>
+    </div>
+  </div>
+
+  <!-- SCRIPT: All integreated logic -->
+  <script>
+    // ---------- Utility modals ----------
+    function openModal(id){ const el = document.getElementById(id); if(!el) return; el.classList.add('active'); el.setAttribute('aria-hidden','false'); }
+    function closeModal(id){ const el = document.getElementById(id); if(!el) return; el.classList.remove('active'); el.setAttribute('aria-hidden','true'); }
+
+    // ---------- Theme toggle (dark mode) ----------
+    const body = document.getElementById('pageBody');
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+
+    function setDarkMode(on){
+      if(on){
+        document.documentElement.classList.add('dark'); body.classList.add('dark');
+        themeIcon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="#e6eef8" stroke="none"></path>';
+      } else {
+        document.documentElement.classList.remove('dark'); body.classList.remove('dark');
+        themeIcon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+      }
+      localStorage.setItem('darkMode', on ? '1' : '0');
+    }
+
+    themeToggle.addEventListener('click', ()=> {
+      setDarkMode(!body.classList.contains('dark'));
+    });
+
+    // initialize based on system or saved preference
+    (function(){
+      const saved = localStorage.getItem('darkMode');
+      if(saved === '1') setDarkMode(true);
+      else if(saved === '0') setDarkMode(false);
+      else {
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        setDarkMode(prefersDark);
+      }
+    })();
+
+    // ---------- Forms: Lost / Found (found includes image preview) ----------
+    function submitLostForm(e){ e.preventDefault(); alert('Lost item submitted.'); closeModal('lostModal'); }
+    function submitFoundForm(e){
+      e.preventDefault();
+      // gather details + image file (front-end ready to post)
+      const name = document.getElementById('foundName').value.trim();
+      const location = document.getElementById('foundLocation').value.trim();
+      const desc = document.getElementById('foundDesc').value.trim();
+      const contact = document.getElementById('foundContact').value.trim();
+      const fileInput = document.getElementById('foundImageInput');
+      if(!fileInput.files || !fileInput.files[0]) { alert('Please upload a photo of the item.'); return; }
+      // prepare FormData for backend
+      const fd = new FormData();
+      fd.append('name', name);
+      fd.append('location', location);
+      fd.append('description', desc);
+      fd.append('contact', contact);
+      fd.append('photo', fileInput.files[0]);
+      // Example: replace with your fetch() endpoint
+      // fetch('/api/found', { method: 'POST', body: fd })
+      alert('Found item submitted (image included).');
+      document.getElementById('foundForm').reset();
+      document.getElementById('foundImagePreview').style.display = 'none';
+      closeModal('foundModal');
+    }
+
+    // Image preview handler
+    const foundImageInput = document.getElementById('foundImageInput');
+    if(foundImageInput){
+      foundImageInput.addEventListener('change', (e)=> {
+        const f = e.target.files[0];
+        if(!f) { document.getElementById('foundImagePreview').style.display = 'none'; return; }
+        const url = URL.createObjectURL(f);
+        const img = document.getElementById('foundImgTag');
+        img.src = url;
+        document.getElementById('foundImagePreview').style.display = 'block';
+      });
+    }
+
+    // ---------- Ratings: WORKING & backend-ready ----------
+    window._currentRating = 0;
+    const starButtons = Array.from(document.querySelectorAll('.star-btn'));
+    starButtons.forEach((btn)=> {
+      btn.addEventListener('click', (ev) => {
+        const val = Number(btn.getAttribute('data-value'));
+        if(window._currentRating === val) window._currentRating = 0;
+        else window._currentRating = val;
+        updateStarUI();
+      });
+      btn.addEventListener('keydown', (ev) => {
+        if(ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); btn.click(); }
+      });
+    });
+
+    function updateStarUI(){
+      starButtons.forEach((s, idx) => {
+        if(idx < window._currentRating) { s.classList.add('text-yellow-400'); s.classList.remove('text-slate-300'); }
+        else { s.classList.remove('text-yellow-400'); s.classList.add('text-slate-300'); }
+      });
+    }
+
+    function getCurrentRating(){ return window._currentRating; }
+
+    function submitReview(e){
+      e.preventDefault();
+      const rating = getCurrentRating();
+      if(!rating){ alert('Please select a rating.'); return; }
+      const name = document.getElementById('reviewName').value.trim();
+      const text = document.getElementById('reviewText').value.trim();
+      // Example: POST to backend
+      // fetch('/api/review', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name, rating, text}) });
+      document.getElementById('reviewStatus').textContent = 'Thanks for your review!';
+      document.getElementById('reviewForm').reset();
+      window._currentRating = 0; updateStarUI();
+      setTimeout(()=> document.getElementById('reviewStatus').textContent = '', 2200);
+      // optionally call loadReviews to immediately show this review in carousel
+    }
+
+    // ---------- Success Stories Carousel handlers ----------
+    let carouselIndex = 0;
+    function loadReviews(reviews){
+      // reviews: [{name, rating, text, date, image}]
+      const track = document.getElementById('carouselTrack');
+      track.innerHTML = '';
+      if(!Array.isArray(reviews) || reviews.length === 0){
+        track.innerHTML = '<div class="carousel-item glass p-4 rounded-2xl"><p class="text-slate-600">No reviews yet.</p></div>';
+        return;
+      }
+      reviews.forEach(r => {
+        const item = document.createElement('div');
+        item.className = 'carousel-item glass p-4 rounded-2xl';
+        item.innerHTML = `<div class="flex items-center gap-3 mb-2"><div style="width:44px;height:44px;border-radius:999px;background:#eef6ff;display:flex;align-items:center;justify-content:center">${(r.name||'U')[0]}</div><div><div class="font-semibold">${escapeHtml(r.name||'User')}</div><div class="text-sm text-slate-500">${escapeHtml(r.date||'')}</div></div></div><div class="text-sm text-slate-600 mb-2">${escapeHtml(r.text||'')}</div><div class="text-xs text-yellow-400">${'★'.repeat(r.rating||0)}</div>`;
+        track.appendChild(item);
+      });
+      // reset index
+      carouselIndex = 0;
+      updateCarousel();
+    }
+    function updateCarousel(){ const track = document.getElementById('carouselTrack'); const itemW = 272; track.style.transform = `translateX(-${carouselIndex * (itemW)}px)`; }
+    function carouselNext(){ carouselIndex++; const track = document.getElementById('carouselTrack'); const max = Math.max(0, track.children.length - 1); if(carouselIndex > max) carouselIndex = 0; updateCarousel(); }
+    function carouselPrev(){ carouselIndex--; const track = document.getElementById('carouselTrack'); if(carouselIndex < 0) carouselIndex = Math.max(0, track.children.length - 1); updateCarousel(); }
+
+    // ---------- Swipe integration (clean, no dummy items) ----------
+    window.matchedItems = [];
+    let currentIndex = 0;
+    let swipeHistory = [];
+    let matchedItem = null;
+    const cardStack = document.getElementById('cardStack');
+    const noItemsPlaceholder = document.getElementById('noItemsPlaceholder');
+    const undoBtn = document.getElementById('undoBtn');
+
+    function openSwipe(){ openModal('swipeModal'); showLoading(); setTimeout(renderNextCard, 250); }
+    function closeSwipe(){ closeModal('swipeModal'); }
+    function showLoading(){ cardStack.innerHTML = '<div class="skeleton p-4 rounded min-h-[160px]"><div style="height:56%;border-radius:8px;margin-bottom:12px"></div><div style="height:12px;width:60%;border-radius:6px;margin-bottom:8px"></div><div style="height:12px;width:40%;border-radius:6px"></div></div>'; noItemsPlaceholder.style.display='none'; }
+
+    function renderNextCard(){
+      cardStack.innerHTML = '';
+      if(!Array.isArray(window.matchedItems) || window.matchedItems.length === 0 || currentIndex >= window.matchedItems.length){
+        noItemsPlaceholder.style.display = 'block'; undoBtn.disabled = swipeHistory.length === 0; return;
+      }
+      noItemsPlaceholder.style.display = 'none';
+      const item = window.matchedItems[currentIndex] || {};
+      const c = document.createElement('div');
+      c.className = 'card p-4';
+      c.innerHTML = `<div class="h-40 bg-gray-100 rounded mb-3" style="background-image:url('${item.image||''}'); background-size:cover; background-position:center;"></div><h4 class="font-semibold mb-1">${escapeHtml(item.name||'Item')}</h4><p class="text-sm text-slate-600 mb-2">📍 ${escapeHtml(item.location||'Location')}</p><p class="text-sm text-slate-500 mb-3">${escapeHtml(item.description||'')}</p><div><button class="px-3 py-2 rounded bg-slate-100" onclick="viewOnMap(${(item.coordinates&&item.coordinates.lat)||0}, ${(item.coordinates&&item.coordinates.lng)||0})">View on map</button></div>`;
+      cardStack.appendChild(c);
+      undoBtn.disabled = swipeHistory.length === 0;
+    }
+
+    function swipeLeft(){ if(!window.matchedItems || currentIndex >= window.matchedItems.length) return; swipeHistory.push({index:currentIndex,action:'reject'}); currentIndex++; renderNextCard(); undoBtn.disabled = swipeHistory.length === 0; }
+    function swipeRight(){ if(!window.matchedItems || currentIndex >= window.matchedItems.length) return; swipeHistory.push({index:currentIndex,action:'accept'}); matchedItem = window.matchedItems[currentIndex]; currentIndex++; document.getElementById('matchInfo').textContent = matchedItem && matchedItem.name ? `Matched: ${matchedItem.name}` : 'Matched'; openModal('matchModal'); smallConfetti(); renderNextCard(); undoBtn.disabled = swipeHistory.length === 0; }
+    function undoSwipe(){ if(!swipeHistory.length) return; const last = swipeHistory.pop(); currentIndex = last.index; renderNextCard(); undoBtn.disabled = swipeHistory.length === 0; }
+
+    function viewOnMap(lat,lng){ if(!lat && !lng) { alert('Location not available'); return; } window.open(`https://maps.google.com?q=${lat},${lng}`,'_blank'); }
+
+    window.loadMatchedItems = function(items){ if(!Array.isArray(items)) return; window.matchedItems = items; currentIndex = 0; swipeHistory = []; matchedItem = null; if(document.getElementById('swipeModal').classList.contains('active')) renderNextCard(); };
+
+    // allow backend to open match modal
+    window.openMatchFromExternal = function(item){ matchedItem = item; document.getElementById('matchInfo').textContent = item && item.name ? `Matched: ${item.name}` : 'Matched'; openModal('matchModal'); smallConfetti(); };
+
+    // ---------- Match Chat (clean) ----------
+    function openMatchChat(){ closeModal('matchModal'); openModal('matchChat'); document.getElementById('chatHeaderTitle').textContent = matchedItem && matchedItem.finderName ? matchedItem.finderName : 'Finder'; document.getElementById('chatHeaderSubtitle').textContent = matchedItem && matchedItem.name ? matchedItem.name : 'Matched item'; document.getElementById('chatMessages').innerHTML = '<div id="chatEmptyPlaceholder" class="text-center text-slate-500"><p>No messages yet. Start the conversation.</p></div>'; }
+    function closeMatchChat(){ closeModal('matchChat'); }
+    function sendMatchChat(){
+      const input = document.getElementById('matchChatInput'); const text = input.value.trim(); if(!text) return;
+      const messages = document.getElementById('chatMessages'); const placeholder = document.getElementById('chatEmptyPlaceholder'); if(placeholder) placeholder.remove();
+      const el = document.createElement('div'); el.className='mb-3 text-right'; el.innerHTML=`<div class="inline-block bg-blue-600 text-white p-2 rounded-2xl">${escapeHtml(text)}<div class="text-xs text-white/70 mt-1">Sent</div></div>`; messages.appendChild(el); messages.scrollTop = messages.scrollHeight; input.value='';
+      // TODO: send to backend via fetch/socket
+    }
+    window.addIncomingMessage = function(text){ const messages=document.getElementById('chatMessages'); const placeholder=document.getElementById('chatEmptyPlaceholder'); if(placeholder) placeholder.remove(); const el=document.createElement('div'); el.className='mb-3 text-left'; el.innerHTML=`<div class="inline-block bg-gray-100 text-slate-900 p-2 rounded-2xl">${escapeHtml(text)}</div>`; messages.appendChild(el); messages.scrollTop = messages.scrollHeight; }
+
+    // ---------- small confetti ----------
+    function smallConfetti(){
+      for(let i=0;i<18;i++){
+        const c=document.createElement('div'); c.style.position='fixed'; c.style.left=(50 + (Math.random()*40-20))+'%'; c.style.top=(35 + Math.random()*10)+'%'; c.style.width='8px'; c.style.height='8px'; c.style.borderRadius='2px'; c.style.zIndex='9999'; c.style.pointerEvents='none'; c.style.background=['#ffd166','#06d6a0','#118ab2','#ef476f'][Math.floor(Math.random()*4)]; document.body.appendChild(c);
+        c.animate([{transform:'translateY(0) rotate(0deg)', opacity:1},{transform:`translateY(${80 + Math.random()*60}px) rotate(${Math.random()*360}deg)`, opacity:0}],{duration:900 + Math.random()*700, easing:'cubic-bezier(.2,.8,.2,1)'});
+        setTimeout(()=> c.remove(),1800);
+      }
+    }
+
+    // ---------- small helpers ----------
+    function escapeHtml(s){ if(!s) return ''; return String(s).replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'})[m]; }); }
+
+    // ---------- Report modal & tutorial ----------
+    function showReportModal(){ openModal('reportModal'); }
+    function hideReportModal(){ closeModal('reportModal'); }
+    function submitReport(){ hideReportModal(); alert('Report submitted.'); }
+
+    document.getElementById('gotItBtn').addEventListener('click', ()=>{ closeModal('tutorialOverlay'); localStorage.setItem('hasSeenTutorial','1'); });
+    if(!localStorage.getItem('hasSeenTutorial')) openModal('tutorialOverlay');
+
+    // expose getCurrentRating to global
+    window.getCurrentRating = getCurrentRating || function(){ return window._currentRating || 0; };
+
+    // ---------- End of script ----------
+  </script>
+</body>
+</html>
